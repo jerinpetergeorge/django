@@ -47,6 +47,17 @@ class WindowFunctionTests(TestCase):
             ]
         ])
 
+    def test_rank_with_queryset_get_method(self):
+        qs = Employee.objects.annotate(
+            rank=Window(expression=Rank(), order_by=F("salary").desc()),
+        )
+        rank_set = list(qs.values_list("pk", "rank"))
+        rank_set_iter = [(emp.pk, emp.rank) for emp in qs]
+
+        self.assertEqual(rank_set, rank_set_iter)  # does queryset iteration has any problem?
+        for pk, rank in rank_set:
+            self.assertEqual(qs.get(pk=pk).rank, rank)  # does `.get()` has any problem?
+
     def test_dense_rank(self):
         tests = [
             ExtractYear(F('hire_date')).asc(),
